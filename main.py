@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Body
+from fastapi import FastAPI, Query, Body, Path
 import uvicorn
 
 app = FastAPI()
@@ -11,7 +11,7 @@ hotels = [
 ]
 
 
-@app.get("/hotels")
+@app.get("/hotels", summary="Вернуть информацию об отелях")
 def get_hotels(
         id: int | None = Query(default=None, description="ID-номер"),
         title: str | None = Query(default=None, description="Название отеля"),
@@ -27,7 +27,7 @@ def get_hotels(
     return return_hotels
 
 
-@app.delete("/hotels/{hotel_id}")
+@app.delete("/hotels/{hotel_id}", summary="Удалить информацию об отеле")
 def delete_hotel(
         hotel_id: int
 ):
@@ -36,7 +36,7 @@ def delete_hotel(
     return {"status": "success"}
 
 
-@app.post("/hotels")
+@app.post("/hotels", summary="Добавить отель")
 def create_hotel(
         title: str = Body(embed=True)
 ):
@@ -48,14 +48,14 @@ def create_hotel(
     return {"status": "success"}
 
 
-@app.put("/hotels/{hotel_id}")
+@app.put("/hotels/{hotel_id}", summary="Полное изменение информации об отеле")
 def put_hotel(
-        id: int,
+        hotel_id: int = Path(),
         title: str = Body(embed=True),
         name: str = Body(embed=True)
 ):
     for hotel in hotels:
-        if hotel["id"] != id:
+        if hotel["id"] != hotel_id:
             continue
         hotel["title"] = title
         hotel["name"] = name
@@ -63,14 +63,14 @@ def put_hotel(
     return {"status": "success"}
 
 
-@app.patch("/hotels/{hotel_id}")
+@app.patch("/hotels/{hotel_id}", summary="Изменение определённой информации об отеле")
 def patch_hotel(
-        id: int,
+        hotel_id: int = Path(),
         title: str | None = Body(embed=True, default=None),
         name: str | None = Body(embed=True, default=None)
 ):
     for hotel in hotels:
-        if hotel["id"] != id:
+        if hotel["id"] != hotel_id:
             continue
         if title:
             hotel["title"] = title
