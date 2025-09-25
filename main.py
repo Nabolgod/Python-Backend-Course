@@ -79,6 +79,10 @@ def patch_hotel(
 
     return {"status": "success"}
 
+#Привет с макбука
+def macbook_hello():
+    return "Hello Git"
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)
