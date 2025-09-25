@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Query, Body, Path
 import uvicorn
+import time
+import asyncio
+import threading
 
 app = FastAPI()
 
@@ -11,10 +14,31 @@ hotels = [
 ]
 
 
+@app.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
+def sync_get(id: int):
+    print(f"sync. Потоков: {threading.active_count()}")
+    print(f"sync. Нвчал {id}: {round(time.time(), 2)}")
+    time.sleep(3)
+    print(f"sync. Закончил {id}: {round(time.time(), 2)}")
+    hotel = [h for h in hotels if h["id"] == id]
+    return hotel
+
+
+@app.get("/async/{id}", summary="Асинхронная ручка по возврату отеля")
+async def async_get(id: int):
+    print(f"async. Потоков: {threading.active_count()}")
+    print(f"async. Нвчал {id}: {round(time.time(), 2)}")
+    await asyncio.sleep(3)
+    print(f"async. Закончил {id}: {round(time.time(), 2)}")
+
+    hotel = [h for h in hotels if h["id"] == id]
+    return hotel
+
+
 @app.get("/hotels", summary="Вернуть информацию об отелях")
 def get_hotels(
-        id: int | None = Query(default=None, description="ID-номер"),
-        title: str | None = Query(default=None, description="Название отеля"),
+    id: int | None = Query(default=None, description="ID-номер"),
+    title: str | None = Query(default=None, description="Название отеля"),
 ):
     return_hotels = []
     for hotel in hotels:
@@ -28,31 +52,22 @@ def get_hotels(
 
 
 @app.delete("/hotels/{hotel_id}", summary="Удалить информацию об отеле")
-def delete_hotel(
-        hotel_id: int
-):
+def delete_hotel(hotel_id: int):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     return {"status": "success"}
 
 
 @app.post("/hotels", summary="Добавить отель")
-def create_hotel(
-        title: str = Body(embed=True)
-):
+def create_hotel(title: str = Body(embed=True)):
     global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": title
-    })
+    hotels.append({"id": hotels[-1]["id"] + 1, "title": title})
     return {"status": "success"}
 
 
 @app.put("/hotels/{hotel_id}", summary="Полное изменение информации об отеле")
 def put_hotel(
-        hotel_id: int = Path(),
-        title: str = Body(embed=True),
-        name: str = Body(embed=True)
+    hotel_id: int = Path(), title: str = Body(embed=True), name: str = Body(embed=True)
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
@@ -65,9 +80,9 @@ def put_hotel(
 
 @app.patch("/hotels/{hotel_id}", summary="Изменение определённой информации об отеле")
 def patch_hotel(
-        hotel_id: int = Path(),
-        title: str | None = Body(embed=True, default=None),
-        name: str | None = Body(embed=True, default=None)
+    hotel_id: int = Path(),
+    title: str | None = Body(embed=True, default=None),
+    name: str | None = Body(embed=True, default=None),
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
@@ -79,7 +94,8 @@ def patch_hotel(
 
     return {"status": "success"}
 
-#Привет с макбука
+
+# Привет с макбука
 def macbook_hello():
     return "Hello Git"
 
