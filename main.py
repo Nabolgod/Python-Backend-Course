@@ -79,7 +79,8 @@ def patch_hotel(
 
     return {"status": "success"}
 
-#Привет с макбука
+
+# Привет с макбука
 def macbook_hello():
     return "Hello Git"
 
