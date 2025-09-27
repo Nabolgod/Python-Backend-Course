@@ -41,6 +41,8 @@ async def async_get(id: int):
 def get_hotels(
         id: int | None = Query(default=None, description="ID-номер"),
         title: str | None = Query(default=None, description="Название отеля"),
+        page: int | None = Query(default=1),
+        per_page: int | None = Query(default=3),
 ):
     return_hotels = []
     for hotel in hotels:
@@ -50,7 +52,13 @@ def get_hotels(
             continue
         return_hotels.append(hotel)
 
-    return return_hotels
+    if page == 0 or per_page == 0:
+        return {"status": "Ошибка ввода, одно из значений меньше или равно нуля"}
+
+    limit_page = (len(return_hotels) // per_page) + (1 if len(return_hotels) % per_page != 0 else 0)
+    if page > limit_page:
+        page = limit_page
+    return return_hotels[(page - 1) * per_page: page * per_page]
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
