@@ -1,15 +1,19 @@
-from fastapi import Query, Body, Path, APIRouter
+from fastapi import Query, APIRouter, Body
 import time
 import asyncio
 import threading
+from schemes.hotels import Hotel, HotelPATCH
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 hotels = [
-    {"id": 1, "title": "Sochi", "name": "sochi_hotel"},
-    {"id": 2, "title": "Dubai", "name": "dubai_hotel"},
-    {"id": 3, "title": "New York", "name": "new_york_hotel"},
-    {"id": 4, "title": "Moscow", "name": "moscow_hotel"},
+    {"id": 1, "title": "Sochi", "name": "sochi"},
+    {"id": 2, "title": "Дубай", "name": "dubai"},
+    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
+    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
+    {"id": 5, "title": "Москва", "name": "moscow"},
+    {"id": 6, "title": "Казань", "name": "kazan"},
+    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
 ]
 
 
@@ -19,8 +23,8 @@ def sync_get(id: int):
     print(f"sync. Нaчал {id}: {round(time.time(), 2)}")
     time.sleep(3)
     print(f"sync. Закончил {id}: {round(time.time(), 2)}")
-    # hotel = [h for h in hotels if h["id"] == id]
-    # return hotel
+    hotel = [h for h in hotels if h["id"] == id]
+    return hotel
 
 
 @router.get("/async/{id}", summary="Асинхронная ручка по возврату отеля")
@@ -29,9 +33,8 @@ async def async_get(id: int):
     print(f"async. Нaчал {id}: {round(time.time(), 2)}")
     await asyncio.sleep(3)
     print(f"async. Закончил {id}: {round(time.time(), 2)}")
-    #
-    # hotel = [h for h in hotels if h["id"] == id]
-    # return hotel
+    hotel = [h for h in hotels if h["id"] == id]
+    return hotel
 
 
 @router.get("", summary="Вернуть информацию об отелях")
@@ -58,37 +61,48 @@ def delete_hotel(hotel_id: int):
 
 
 @router.post("", summary="Добавить отель")
-def create_hotel(title: str = Body(embed=True)):
+def create_hotel(
+        hotel_data: Hotel = Body(openapi_examples={
+            "1": {"summary": "Сочи", "value": {
+                "title": "Отель Сочии 5 звёзд у моря",
+                "name": "sochi_hotel",
+            }}
+        }),
+):
     global hotels
-    hotels.append({"id": hotels[-1]["id"] + 1, "title": title})
+    hotels.append({
+        "id": hotels[-1]["id"] + 1,
+        "title": hotel_data.title,
+        "name": hotel_data.name,
+    })
     return {"status": "success"}
 
 
 @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
 def put_hotel(
-        hotel_id: int = Path(), title: str = Body(embed=True), name: str = Body(embed=True)
+        hotel_id: int,
+        hotel_data: Hotel,
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
             continue
-        hotel["title"] = title
-        hotel["name"] = name
+        hotel["title"] = hotel_data.title
+        hotel["name"] = hotel_data.name
 
     return {"status": "success"}
 
 
 @router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
 def patch_hotel(
-        hotel_id: int = Path(),
-        title: str | None = Body(embed=True, default=None),
-        name: str | None = Body(embed=True, default=None),
+        hotel_id: int,
+        hotel_data: HotelPATCH,
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
             continue
-        if title:
-            hotel["title"] = title
-        if name:
-            hotel["name"] = name
+        if hotel_data.title:
+            hotel["title"] = hotel_data.title
+        if hotel_data.name:
+            hotel["name"] = hotel_data.name
 
     return {"status": "success"}
