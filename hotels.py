@@ -3,6 +3,7 @@ import time
 import asyncio
 import threading
 from schemes.hotels import Hotel, HotelPATCH
+from dependencies import PaginationDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -18,47 +19,45 @@ hotels = [
 
 
 @router.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
-def sync_get(id: int):
+def sync_get(hotel_id: int):
     print(f"sync. Потоков: {threading.active_count()}")
-    print(f"sync. Нaчал {id}: {round(time.time(), 2)}")
+    print(f"sync. Нaчал {hotel_id}: {round(time.time(), 2)}")
     time.sleep(3)
-    print(f"sync. Закончил {id}: {round(time.time(), 2)}")
-    hotel = [h for h in hotels if h["id"] == id]
+    print(f"sync. Закончил {hotel_id}: {round(time.time(), 2)}")
+    hotel = [h for h in hotels if h["id"] == hotel_id]
     return hotel
 
 
 @router.get("/async/{id}", summary="Асинхронная ручка по возврату отеля")
-async def async_get(id: int):
+async def async_get(hotel_id: int):
     print(f"async. Потоков: {threading.active_count()}")
-    print(f"async. Нaчал {id}: {round(time.time(), 2)}")
+    print(f"async. Нaчал {hotel_id}: {round(time.time(), 2)}")
     await asyncio.sleep(3)
-    print(f"async. Закончил {id}: {round(time.time(), 2)}")
-    hotel = [h for h in hotels if h["id"] == id]
+    print(f"async. Закончил {hotel_id}: {round(time.time(), 2)}")
+    hotel = [h for h in hotels if h["id"] == hotel_id]
     return hotel
 
 
 @router.get("", summary="Вернуть информацию об отелях")
 def get_hotels(
-        id: int | None = Query(default=None, description="ID-номер"),
+        pagination: PaginationDep,
+        hotel_id: int | None = Query(default=None, description="ID-номер"),
         title: str | None = Query(default=None, description="Название отеля"),
-        page: int | None = Query(default=1),
-        per_page: int | None = Query(default=3),
 ):
     return_hotels = []
     for hotel in hotels:
-        if id and hotel["id"] != id:
+        if hotel_id and hotel["id"] != hotel_id:
             continue
         if title and hotel["title"] != title:
             continue
         return_hotels.append(hotel)
 
-    if page == 0 or per_page == 0:
-        return {"status": "Ошибка ввода, одно из значений меньше или равно нуля"}
-
-    limit_page = (len(return_hotels) // per_page) + (1 if len(return_hotels) % per_page != 0 else 0)
-    if page > limit_page:
-        page = limit_page
-    return return_hotels[(page - 1) * per_page: page * per_page]
+    current_page = pagination.page
+    limit_page = (len(return_hotels) // pagination.per_page) + (
+        1 if len(return_hotels) % pagination.per_page != 0 else 0)
+    if pagination.page > limit_page:
+        current_page = limit_page
+    return return_hotels[(current_page - 1) * pagination.per_page: current_page * pagination.per_page]
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
