@@ -1,3 +1,5 @@
 venv/
 .idea/
 __pycache__
+#Всегда прятать env в gitignore, это аксиома
+.env

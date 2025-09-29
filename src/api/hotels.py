@@ -2,8 +2,8 @@ from fastapi import Query, APIRouter, Body
 import time
 import asyncio
 import threading
-from schemes.hotels import Hotel, HotelPATCH
-from dependencies import PaginationDep
+from src.schemes.hotels import Hotel, HotelPATCH
+from src.api.dependencies import PaginationDep
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
