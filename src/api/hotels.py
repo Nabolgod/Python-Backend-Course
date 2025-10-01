@@ -40,9 +40,9 @@ async def async_get(hotel_id: int):
 
 @router.get("", summary="Вернуть информацию об отелях")
 def get_hotels(
-        pagination: PaginationDep,
-        hotel_id: int | None = Query(default=None, description="ID-номер"),
-        title: str | None = Query(default=None, description="Название отеля"),
+    pagination: PaginationDep,
+    hotel_id: int | None = Query(default=None, description="ID-номер"),
+    title: str | None = Query(default=None, description="Название отеля"),
 ):
     return_hotels = []
     for hotel in hotels:
@@ -54,10 +54,13 @@ def get_hotels(
 
     current_page = pagination.page
     limit_page = (len(return_hotels) // pagination.per_page) + (
-        1 if len(return_hotels) % pagination.per_page != 0 else 0)
+        1 if len(return_hotels) % pagination.per_page != 0 else 0
+    )
     if pagination.page > limit_page:
         current_page = limit_page
-    return return_hotels[(current_page - 1) * pagination.per_page: current_page * pagination.per_page]
+    return return_hotels[
+        (current_page - 1) * pagination.per_page : current_page * pagination.per_page
+    ]
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
@@ -69,26 +72,33 @@ def delete_hotel(hotel_id: int):
 
 @router.post("", summary="Добавить отель")
 def create_hotel(
-        hotel_data: Hotel = Body(openapi_examples={
-            "1": {"summary": "Сочи", "value": {
-                "title": "Отель Сочии 5 звёзд у моря",
-                "name": "sochi_hotel",
-            }}
-        }),
+    hotel_data: Hotel = Body(
+        openapi_examples={
+            "1": {
+                "summary": "Сочи",
+                "value": {
+                    "title": "Отель Сочии 5 звёзд у моря",
+                    "name": "sochi_hotel",
+                },
+            }
+        }
+    ),
 ):
     global hotels
-    hotels.append({
-        "id": hotels[-1]["id"] + 1,
-        "title": hotel_data.title,
-        "name": hotel_data.name,
-    })
+    hotels.append(
+        {
+            "id": hotels[-1]["id"] + 1,
+            "title": hotel_data.title,
+            "name": hotel_data.name,
+        }
+    )
     return {"status": "success"}
 
 
 @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
 def put_hotel(
-        hotel_id: int,
-        hotel_data: Hotel,
+    hotel_id: int,
+    hotel_data: Hotel,
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
@@ -101,8 +111,8 @@ def put_hotel(
 
 @router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
 def patch_hotel(
-        hotel_id: int,
-        hotel_data: HotelPATCH,
+    hotel_id: int,
+    hotel_data: HotelPATCH,
 ):
     for hotel in hotels:
         if hotel["id"] != hotel_id:
