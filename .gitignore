@@ -3,3 +3,7 @@ venv/
 __pycache__
 #Всегда прятать env в gitignore, это аксиома
 .env
+
+# Zapret files
+*.bat
+tore*
