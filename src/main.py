@@ -6,9 +6,11 @@ from pathlib import Path
 # Магическая команда для корректного поиска путей
 sys.path.append(str(Path(__file__).parent.parent))
 
-# from src.database import *
 from src.api.hotels import router as hotels_router
-from src.config import settings
+
+# from src.database import *
+# from src.config import settings
+
 
 # # Никогда не логгировать данный адрес (именно пароль)
 # print(f"{settings.__dict__=}")

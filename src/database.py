@@ -10,7 +10,6 @@ async_session_maker = async_sessionmaker(bind=engine, expire_on_commit=False)
 class Base(DeclarativeBase):
     pass
 
-
 # Пример создания сессии для работы с бд, в поле execute будет какой-то код на выполнение.
 # session = async_session_maker()
 # await session.execute()
