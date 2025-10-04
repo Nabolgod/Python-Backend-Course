@@ -2,20 +2,14 @@ from fastapi import Query, APIRouter, Body
 import time
 import asyncio
 import threading
+import sqlalchemy as alh
 from src.schemes.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
+from src.database import async_session_maker, engine
+from src.models.hotels import HotelsORM
+
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-
-hotels = [
-    {"id": 1, "title": "Sochi", "name": "sochi"},
-    {"id": 2, "title": "Дубай", "name": "dubai"},
-    {"id": 3, "title": "Мальдивы", "name": "maldivi"},
-    {"id": 4, "title": "Геленджик", "name": "gelendzhik"},
-    {"id": 5, "title": "Москва", "name": "moscow"},
-    {"id": 6, "title": "Казань", "name": "kazan"},
-    {"id": 7, "title": "Санкт-Петербург", "name": "spb"},
-]
 
 
 @router.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
@@ -71,28 +65,27 @@ def delete_hotel(hotel_id: int):
 
 
 @router.post("", summary="Добавить отель")
-def create_hotel(
+async def create_hotel(
         hotel_data: Hotel = Body(
             openapi_examples={
                 "1": {
                     "summary": "Сочи",
                     "value": {
-                        "title": "Отель Сочии 5 звёзд у моря",
-                        "name": "sochi_hotel",
+                        "title": "Отдых наяву, а не во сне",
+                        "location": "Лучший город Сочи",
                     },
                 }
             }
         ),
 ):
-    global hotels
-    hotels.append(
-        {
-            "id": hotels[-1]["id"] + 1,
-            "title": hotel_data.title,
-            "name": hotel_data.name,
-        }
-    )
-    return {"status": "success"}
+    async with async_session_maker() as session:
+        add_hotel_stmt = alh.insert(HotelsORM).values(**hotel_data.model_dump())
+        print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
+        await session.execute(add_hotel_stmt)
+        await session.commit()
+
+
+    return {"status": "Отель успешно добавлен!"}
 
 
 @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
