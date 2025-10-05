@@ -8,7 +8,6 @@ from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsORM
 
-
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
@@ -33,28 +32,26 @@ async def async_get(hotel_id: int):
 
 
 @router.get("", summary="Вернуть информацию об отелях")
-def get_hotels(
+async def get_hotels(
         pagination: PaginationDep,
         hotel_id: int | None = Query(default=None, description="ID-номер"),
         title: str | None = Query(default=None, description="Название отеля"),
 ):
-    return_hotels = []
-    for hotel in hotels:
-        if hotel_id and hotel["id"] != hotel_id:
-            continue
-        if title and hotel["title"] != title:
-            continue
-        return_hotels.append(hotel)
+    async with async_session_maker() as session:
+        query = alh.select(HotelsORM)
+        result = await session.execute(query)
+        hotels = result.scalars().all()
+        return hotels
 
-    current_page = pagination.page
-    limit_page = (len(return_hotels) // pagination.per_page) + (
-        1 if len(return_hotels) % pagination.per_page != 0 else 0
-    )
-    if pagination.page > limit_page:
-        current_page = limit_page
-    return return_hotels[
-           (current_page - 1) * pagination.per_page: current_page * pagination.per_page
-           ]
+    # current_page = pagination.page
+    # limit_page = (len(return_hotels) // pagination.per_page) + (
+    #     1 if len(return_hotels) % pagination.per_page != 0 else 0
+    # )
+    # if pagination.page > limit_page:
+    #     current_page = limit_page
+    # return return_hotels[
+    #        (current_page - 1) * pagination.per_page: current_page * pagination.per_page
+    #        ]
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
@@ -83,7 +80,6 @@ async def create_hotel(
         print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
         await session.execute(add_hotel_stmt)
         await session.commit()
-
 
     return {"status": "Отель успешно добавлен!"}
 
