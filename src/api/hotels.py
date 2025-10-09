@@ -52,11 +52,11 @@ async def get_hotels(
         )
 
 
-# @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
-# def delete_hotel(hotel_id: int):
-#     global hotels
-#     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-#     return {"status": "success"}
+@router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
+def delete_hotel(hotel_id: int):
+    global hotels
+    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    return {"status": "success"}
 
 
 @router.post("", summary="Добавить отель")
@@ -80,19 +80,19 @@ async def create_hotel(
     return {"status": "Отель успешно добавлен!",
             "data": hotel}
 
-# @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
-# def put_hotel(
-#         hotel_id: int,
-#         hotel_data: Hotel,
-# ):
-#     for hotel in hotels:
-#         if hotel["id"] != hotel_id:
-#             continue
-#         hotel["title"] = hotel_data.title
-#         hotel["name"] = hotel_data.name
-#
-#     return {"status": "success"}
 
+@router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
+def put_hotel(
+        hotel_id: int,
+        hotel_data: Hotel,
+):
+    for hotel in hotels:
+        if hotel["id"] != hotel_id:
+            continue
+        hotel["title"] = hotel_data.title
+        hotel["name"] = hotel_data.name
+
+    return {"status": "success"}
 
 # @router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
 # def patch_hotel(

@@ -1,4 +1,5 @@
 from sqlalchemy import select, insert
+from pydantic import BaseModel
 
 
 class BaseRepository:
@@ -23,14 +24,26 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalars().one_or_none()
 
-    async def add(self, scheme_data):
+    async def add(self, data: BaseModel):
         """
         Метод добавляет данные об сущности в базу данных
         """
-        add_stmt = (
+        add_data_stmt = (
             insert(self.model)
-            .values(**scheme_data.model_dump())
+            .values(**data.model_dump())
             .returning(self.model)
         )
-        result = await self.session.execute(add_stmt)
-        return result.scalar_one()
+        result = await self.session.execute(add_data_stmt)
+        return result.scalars().one()
+
+    async def edit(self, data: BaseModel, **filter_by) -> None:
+        """
+        Метод для редактирования данных с фильтрацией
+        """
+        pass
+
+    async def delete(self, **filter_by) -> None:
+        """
+        Метод для удаления данных
+        """
+        pass
