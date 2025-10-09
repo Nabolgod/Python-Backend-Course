@@ -3,6 +3,8 @@ import time
 import asyncio
 import threading
 import sqlalchemy as alh
+
+from src.repositories.hotels import HotelsRepository
 from src.schemes.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
@@ -38,23 +40,9 @@ async def get_hotels(
         location: str | None = Query(default=None, description="Расположение отеля"),
 
 ):
-    per_page = pagination.per_page or 5
-
     async with async_session_maker() as session:
-        query = alh.select(HotelsORM)
-
-        if location is not None:
-            query = query.filter(HotelsORM.location.ilike(f"%{location}%"))
-        if title is not None:
-            query = query.filter(HotelsORM.title.ilike(f"%{title}%"))
-
-        query = (
-            query
-            .limit(per_page)
-            .offset(per_page * (pagination.page - 1))
-        )
-        result = await session.execute(query)
-        return result.scalars().all()
+        result = await HotelsRepository(session).get_all()
+    return result
 
 
 # @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
