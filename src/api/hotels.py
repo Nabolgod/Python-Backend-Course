@@ -5,7 +5,7 @@ import threading
 import sqlalchemy as alh
 
 from src.repositories.hotels import HotelsRepository
-from src.schemes.hotels import Hotel, HotelPATCH
+from src.schemes.hotels import Hotel
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker, engine
 from src.models.hotels import HotelsORM
@@ -40,9 +40,16 @@ async def get_hotels(
         location: str | None = Query(default=None, description="Расположение отеля"),
 
 ):
+    per_page = pagination.per_page or 5
     async with async_session_maker() as session:
-        result = await HotelsRepository(session).get_all()
-    return result
+        return await (
+            HotelsRepository(session)
+            .get_all(
+                title=title,
+                location=location,
+                limit=per_page,
+                offset=per_page * (pagination.page - 1))
+        )
 
 
 # @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
@@ -67,12 +74,11 @@ async def create_hotel(
         ),
 ):
     async with async_session_maker() as session:
-        add_hotel_stmt = alh.insert(HotelsORM).values(**hotel_data.model_dump())
-        print(add_hotel_stmt.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stmt)
+        hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
-    return {"status": "Отель успешно добавлен!"}
+    return {"status": "Отель успешно добавлен!",
+            "data": hotel}
 
 # @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
 # def put_hotel(
