@@ -1,6 +1,6 @@
 from fastapi import Query, APIRouter, Body, HTTPException, status
 from src.repositories.hotels import HotelsRepository
-from src.schemes.hotels import Hotel
+from src.schemes.hotels import Hotel, HotelPATCH
 from src.api.dependencies import PaginationDep
 from src.database import async_session_maker
 
@@ -24,6 +24,19 @@ async def get_hotels(
                 limit=per_page,
                 offset=per_page * (pagination.page - 1))
         )
+
+
+@router.get("/{hotel_id}", summary="Вернуть отель по ID")
+async def get_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        repository = HotelsRepository(session)
+
+        if not await repository.exists(id=hotel_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Отеля с ID {hotel_id} не найдено"
+            )
+        return await repository.get_on_or_none(id=hotel_id)
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
@@ -83,20 +96,24 @@ async def put_hotel(
 
     return {"status": "success", "message": f"Отель {hotel_id} обновлен"}
 
-# @router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
-# def patch_hotel(
-#         hotel_id: int,
-#         hotel_data: HotelPATCH,
-# ):
-#     for hotel in hotels:
-#         if hotel["id"] != hotel_id:
-#             continue
-#         if hotel_data.title:
-#             hotel["title"] = hotel_data.title
-#         if hotel_data.name:
-#             hotel["name"] = hotel_data.name
-#
-#     return {"status": "success"}
+
+@router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
+async def patch_hotel(
+        hotel_id: int,
+        hotel_data: HotelPATCH,
+):
+    async with async_session_maker() as session:
+        repository = HotelsRepository(session)
+
+        if not await repository.exists(id=hotel_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Отель с ID {hotel_id} не найден"
+            )
+        await repository.edit(hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
+
+    return {"status": "success", "message": f"Отель {hotel_id} частично обновлен"}
 
 # @router.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
 # def sync_get(hotel_id: int):
