@@ -1,36 +1,10 @@
-from fastapi import Query, APIRouter, Body
-import time
-import asyncio
-import threading
-import sqlalchemy as alh
-
+from fastapi import Query, APIRouter, Body, HTTPException, status
 from src.repositories.hotels import HotelsRepository
 from src.schemes.hotels import Hotel
 from src.api.dependencies import PaginationDep
-from src.database import async_session_maker, engine
-from src.models.hotels import HotelsORM
+from src.database import async_session_maker
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
-
-
-# @router.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
-# def sync_get(hotel_id: int):
-#     print(f"sync. Потоков: {threading.active_count()}")
-#     print(f"sync. Нaчал {hotel_id}: {round(time.time(), 2)}")
-#     time.sleep(3)
-#     print(f"sync. Закончил {hotel_id}: {round(time.time(), 2)}")
-#     hotel = [h for h in hotels if h["id"] == hotel_id]
-#     return hotel
-
-
-# @router.get("/async/{id}", summary="Асинхронная ручка по возврату отеля")
-# async def async_get(hotel_id: int):
-#     print(f"async. Потоков: {threading.active_count()}")
-#     print(f"async. Нaчал {hotel_id}: {round(time.time(), 2)}")
-#     await asyncio.sleep(3)
-#     print(f"async. Закончил {hotel_id}: {round(time.time(), 2)}")
-#     hotel = [h for h in hotels if h["id"] == hotel_id]
-#     return hotel
 
 
 @router.get("", summary="Вернуть информацию об отелях")
@@ -53,10 +27,20 @@ async def get_hotels(
 
 
 @router.delete("/{hotel_id}", summary="Удалить информацию об отеле")
-def delete_hotel(hotel_id: int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-    return {"status": "success"}
+async def delete_hotel(hotel_id: int):
+    async with async_session_maker() as session:
+        repository = HotelsRepository(session)
+
+        if not await repository.exists(id=hotel_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Отель с ID {hotel_id} не найден"
+            )
+
+        await repository.delete(id=hotel_id)
+        await session.commit()
+
+    return {"status": "success", "message": f"Отель {hotel_id} удален"}
 
 
 @router.post("", summary="Добавить отель")
@@ -82,17 +66,22 @@ async def create_hotel(
 
 
 @router.put("/{hotel_id}", summary="Полное изменение информации об отеле")
-def put_hotel(
+async def put_hotel(
         hotel_id: int,
         hotel_data: Hotel,
 ):
-    for hotel in hotels:
-        if hotel["id"] != hotel_id:
-            continue
-        hotel["title"] = hotel_data.title
-        hotel["name"] = hotel_data.name
+    async with async_session_maker() as session:
+        repository = HotelsRepository(session)
 
-    return {"status": "success"}
+        if not await repository.exists(id=hotel_id):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Отель с ID {hotel_id} не найден"
+            )
+        await repository.edit(hotel_data, id=hotel_id)
+        await session.commit()
+
+    return {"status": "success", "message": f"Отель {hotel_id} обновлен"}
 
 # @router.patch("/{hotel_id}", summary="Изменение определённой информации об отеле")
 # def patch_hotel(
@@ -108,3 +97,22 @@ def put_hotel(
 #             hotel["name"] = hotel_data.name
 #
 #     return {"status": "success"}
+
+# @router.get("/sync/{id}", summary="Синхронная ручкаа по возврату отеля")
+# def sync_get(hotel_id: int):
+#     print(f"sync. Потоков: {threading.active_count()}")
+#     print(f"sync. Нaчал {hotel_id}: {round(time.time(), 2)}")
+#     time.sleep(3)
+#     print(f"sync. Закончил {hotel_id}: {round(time.time(), 2)}")
+#     hotel = [h for h in hotels if h["id"] == hotel_id]
+#     return hotel
+
+
+# @router.get("/async/{id}", summary="Асинхронная ручка по возврату отеля")
+# async def async_get(hotel_id: int):
+#     print(f"async. Потоков: {threading.active_count()}")
+#     print(f"async. Нaчал {hotel_id}: {round(time.time(), 2)}")
+#     await asyncio.sleep(3)
+#     print(f"async. Закончил {hotel_id}: {round(time.time(), 2)}")
+#     hotel = [h for h in hotels if h["id"] == hotel_id]
+#     return hotel

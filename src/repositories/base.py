@@ -1,4 +1,4 @@
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, delete, update
 from pydantic import BaseModel
 
 
@@ -7,6 +7,17 @@ class BaseRepository:
 
     def __init__(self, session):
         self.session = session
+
+    async def exists(self, **filter_by):
+        """
+        Проверка существования записи
+        """
+        query = (
+            select(self.model)
+            .filter_by(**filter_by)
+        )
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none() is not None
 
     async def get_all(self, *args, **kwargs):
         """Метод возвращает всю информацию по сущности"""
@@ -40,10 +51,19 @@ class BaseRepository:
         """
         Метод для редактирования данных с фильтрацией
         """
-        pass
+        put_data_stmt = (
+            update(self.model)
+            .values(**data.model_dump())
+            .filter_by(**filter_by)
+        )
+        await self.session.execute(put_data_stmt)
 
     async def delete(self, **filter_by) -> None:
         """
         Метод для удаления данных
         """
-        pass
+        delete_data_stmt = (
+            delete(self.model)
+            .filter_by(**filter_by)
+        )
+        await self.session.execute(delete_data_stmt)
