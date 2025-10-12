@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class BaseRepository:
     model = None
+    scheme: BaseModel = None
 
     def __init__(self, session):
         self.session = session
@@ -24,7 +25,8 @@ class BaseRepository:
 
         query = select(self.model)
         result = await self.session.execute(query)
-        return result.scalars().all()
+        models = result.scalars().all()
+        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
 
     async def get_on_or_none(self, **filter_by):
         """
@@ -33,7 +35,10 @@ class BaseRepository:
         """
         query = select(self.model).filter_by(**filter_by)
         result = await self.session.execute(query)
-        return result.scalars().one_or_none()
+        model = result.scalars().one_or_none()
+        if model is None:
+            return None
+        return self.scheme.model_validate(model, from_attributes=True)
 
     async def add(self, data: BaseModel):
         """
@@ -45,7 +50,8 @@ class BaseRepository:
             .returning(self.model)
         )
         result = await self.session.execute(add_data_stmt)
-        return result.scalars().one()
+        model = result.scalars().one()
+        return self.scheme.model_validate(model, from_attributes=True)
 
     async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
         """
