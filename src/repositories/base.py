@@ -9,17 +9,6 @@ class BaseRepository:
     def __init__(self, session):
         self.session = session
 
-    async def exists(self, **filter_by):
-        """
-        Проверка существования записи
-        """
-        query = (
-            select(self.model)
-            .filter_by(**filter_by)
-        )
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none() is not None
-
     async def get_all(self, *args, **kwargs):
         """Метод возвращает всю информацию по сущности"""
 
