@@ -1,17 +1,21 @@
 from pydantic import BaseModel, EmailStr, Field
 
 
-# Схема для приёма данных от пользователя через api
-class UserRequestAdd(BaseModel):
+# Схема для аутентификации
+class UserAuthentication(BaseModel):
     email: EmailStr
     password: str
+
+
+# Схема для регистрации user
+class UserRequestAdd(UserAuthentication):
     first_name: str
     last_name: str
     nick_name: str
     number: str | None = Field(default=None)
 
 
-# Схема для отправки в базу данных
+# Схема для работы с базой данных
 class UserAdd(BaseModel):
     email: EmailStr
     hashed_password: str
@@ -21,7 +25,7 @@ class UserAdd(BaseModel):
     number: str | None = Field(default=None)
 
 
-# Схема для получения данных
+# Схема для получения данных от базы
 class User(BaseModel):
     id: int
     email: EmailStr
@@ -29,3 +33,9 @@ class User(BaseModel):
     last_name: str
     nick_name: str
     number: str | None = Field(default=None)
+
+
+# Схема для проверки пароля с хэшом
+class UserWithHashPassword(BaseModel):
+    id: int
+    hashed_password: str
