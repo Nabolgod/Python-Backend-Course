@@ -27,5 +27,9 @@ class AuthService:
         """Проверка пароля при аутентификации"""
         return self.pwd_context.verify(plain_password, hashed_password)
 
+    @staticmethod
+    def decode_token(token: str) -> dict:
+        return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
 
 auth_service = AuthService()
