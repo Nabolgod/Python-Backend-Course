@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Response
-from api.dependencies import UserIdDep
+from src.api.dependencies import UserIdDep
 from src.repositories.users import UsersRepository
 from src.schemes.users import UserRequestAdd, UserAdd, UserAuthentication
 from src.database import async_session_maker
@@ -49,9 +49,10 @@ async def get_me(
         users = await UsersRepository(session).get_on_or_none(id=user_id)
     return {"data": users}
 
+
 @router.post("/logout")
 async def logout_user(
-    response: Response,
+        response: Response,
 ):
     response.delete_cookie("access_token")
     return {"status": "ok"}
