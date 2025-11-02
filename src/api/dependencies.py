@@ -5,10 +5,10 @@ from src.services.auth import auth_service
 
 
 class PaginationParams(BaseModel):
-    page: Annotated[int | None, Query(default=1, ge=1)]
-    per_page: Annotated[int | None, Query(default=None, ge=1, lt=30)]
+    page: Annotated[int | None, Query(default=1, description="Кол-во страниц", ge=1)]
+    per_page: Annotated[int | None, Query(default=None, description="Кол-во элементов на странице", ge=1, lt=30)]
 
-
+# Зависимость для пагинации
 PaginationDep = Annotated[PaginationParams, Depends()]
 
 def get_token(request: Request) -> str:
@@ -21,4 +21,6 @@ def get_current_user_id(token: str = Depends(get_token)) -> int:
     data = auth_service.decode_token(token)
     return data.get("user_id", None)
 
+# Зависимость на возврат id текущего пользователя
 UserIdDep = Annotated[int, Depends(get_current_user_id)]
+
