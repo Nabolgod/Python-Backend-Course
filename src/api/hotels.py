@@ -75,7 +75,7 @@ async def put_hotel(
     async with async_session_maker() as session:
         repository = HotelsRepository(session)
 
-        await repository.edit(hotel_data, id=hotel_id)
+        await repository.edit(data=hotel_data, id=hotel_id)
         await session.commit()
 
     return {"status": "success", "message": f"Отель {hotel_id} обновлен"}

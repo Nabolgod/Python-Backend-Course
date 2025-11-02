@@ -3,18 +3,19 @@ from src.repositories.base import BaseRepository
 from src.schemes.rooms import Room
 from sqlalchemy import select
 
+
 class RoomsRepository(BaseRepository):
     model = RoomsORM
     scheme = Room
 
     async def get_all(
-        self,
-        hotel_id,
-        title,
-        min_price,
-        max_price,
-        min_quantity,
-        max_quantity,
+            self,
+            hotel_id,
+            title,
+            min_price,
+            max_price,
+            min_quantity,
+            max_quantity,
     ):
         query = select(self.model).filter_by(hotel_id=hotel_id)
 

@@ -8,5 +8,20 @@ class RoomAdd(BaseModel):
     price: int
     quantity: int
 
+
 class Room(RoomAdd):
     id: int
+
+
+class RoomPATCH(BaseModel):
+    title: str | None = Field(default=None)
+    description: str | None = Field(default=None)
+    price: int | None = Field(default=None)
+    quantity: int | None = Field(default=None)
+
+
+class RoomPUT(BaseModel):
+    title: str
+    description: str
+    price: int
+    quantity: int
