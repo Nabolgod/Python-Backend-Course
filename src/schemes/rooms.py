@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class RoomAdd(BaseModel):
+class RoomAddResponse(BaseModel):
     hotel_id: int
     title: str
     description: str | None = Field(default=None)
@@ -9,18 +9,25 @@ class RoomAdd(BaseModel):
     quantity: int
 
 
-class Room(RoomAdd):
+class RoomAddRequest(BaseModel):
+    title: str
+    description: str | None = Field(default=None)
+    price: int
+    quantity: int
+
+
+class Room(RoomAddResponse):
     id: int
 
 
-class RoomPATCH(BaseModel):
+class RoomPatch(BaseModel):
     title: str | None = Field(default=None)
     description: str | None = Field(default=None)
     price: int | None = Field(default=None)
     quantity: int | None = Field(default=None)
 
 
-class RoomPUT(BaseModel):
+class RoomPut(BaseModel):
     title: str
     description: str
     price: int
