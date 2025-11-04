@@ -56,14 +56,13 @@ async def get_rooms(
 
 
 @router.get(
-    "/{hotel_id}/room/{room_id}", summary="Вернуть информацию по конкретному номеру"
+    "/room/{room_id}", summary="Вернуть информацию по конкретному номеру"
 )
 async def get_room(
-        hotel_id: int,
         room_id: int,
         db: DBDep,
 ):
-    return await db.rooms.get_on_or_none(hotel_id=hotel_id, id=room_id)
+    return await db.rooms.get_on_or_none(id=room_id)
 
 
 @router.delete("/{hotel_id}/room/{room_id}", summary="Удалить конкретный номер")
@@ -85,10 +84,10 @@ async def put_room(
         room_data: RoomPut,
         db: DBDep,
 ):
-    if await get_room(hotel_id, room_id) is None:
+    if await get_room(room_id, db) is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Отеля с ID-{hotel_id} или номера с ID-{room_id} не существует"
+            detail=f"Номера с ID-{room_id} не существует"
         )
 
     await db.rooms.edit(data=room_data, hotel_id=hotel_id, id=room_id)
@@ -106,10 +105,10 @@ async def patch_room(
         room_data: RoomPatch,
         db: DBDep,
 ):
-    if await get_room(hotel_id, room_id) is None:
+    if await get_room(room_id, db) is None:
         raise HTTPException(
             status_code=404,
-            detail=f"Отеля с ID-{hotel_id} или номера с ID-{room_id} не существует"
+            detail=f"Номера с ID-{room_id} не существует"
         )
 
     await db.rooms.edit(data=room_data, exclude_unset=True, hotel_id=hotel_id, id=room_id)
