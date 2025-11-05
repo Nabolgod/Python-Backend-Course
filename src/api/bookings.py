@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from src.api.dependencies import DBDep, UserIdDep
 from src.schemes.bookings import BookingAddRequest, BookingAddResponse
-from src.api.rooms import get_room
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
@@ -12,8 +11,7 @@ async def create_booking(
         user_id: UserIdDep,
         data_booking: BookingAddRequest,
 ):
-
-    room = await get_room(data_booking.room_id, db)
+    room = await db.rooms.get_on_or_none(id=data_booking.room_id)
     if room is None:
         raise HTTPException(
             status_code=404,
@@ -21,9 +19,28 @@ async def create_booking(
         )
     price = room.price
 
-    new_data_booking = BookingAddResponse(user_id=user_id, price=price, **data_booking.model_dump())
+    new_data_booking = BookingAddResponse(
+        user_id=user_id,
+        price=price,
+        **data_booking.model_dump(),
+    )
 
     booking = await db.bookings.add(new_data_booking)
     await db.commit()
 
     return {"status": "Бронирование успешно добавлено", "data": booking}
+
+
+@router.get("/bookings")
+async def get_bookings(
+        db: DBDep,
+):
+    return await db.bookings.get_all()
+
+
+@router.get("/bookings/me")
+async def get_bookings_me(
+        db: DBDep,
+        user_id: UserIdDep,
+):
+    return await db.bookings.get_all_my_bookings(user_id=user_id)

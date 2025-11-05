@@ -18,7 +18,7 @@ async def create_room(
                         "title": "Тут название номера",
                         "description": "Тут необязательная дополнительная информация",
                         "price": "(INT) Тут цена номера в сутки",
-                        "quantity": "(INT) Тут кол-во персон",
+                        "quantity": "(INT) Тут кол-во номеров",
                     },
                 }
             }
@@ -40,9 +40,9 @@ async def get_rooms(
         title: str | None = Query(default=None, description="Название номера"),
         min_price: int = Query(default=0, description="Минимальная цена номера"),
         max_price: int | None = Query(default=None, description="Максимальная цена номера"),
-        min_quantity: int = Query(default=1, description="Минимальное кол-во персон"),
+        min_quantity: int = Query(default=1, description="Минимальное кол-во номеров"),
         max_quantity: int | None = Query(
-            default=None, description="Максимальное кол-во персон"
+            default=None, description="Максимальное кол-во номеров"
         ),
 ):
     return await db.rooms.get_all(
