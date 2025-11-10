@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from fastapi import APIRouter, Body, Query, HTTPException
 from src.schemes.rooms import RoomAddRequest, RoomPatch, RoomPut, RoomAddResponse
 from src.services.rooms import room_service
@@ -25,7 +26,7 @@ async def create_room(
         ),
 ):
     room = None
-    if await room_service.does_hotel_exist(hotel_id):
+    if await room_service.does_hotel_exist(hotel_id, db):
         new_room_data = RoomAddResponse(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
         room = await db.rooms.add(new_room_data)
         await db.commit()
@@ -33,7 +34,7 @@ async def create_room(
     return {"status": "Номер успешно добавлен", "data": room}
 
 
-@router.get("/{hotel_id}/room", summary="Вернуть информацию по номерам отеля")
+@router.get("/{hotel_id}/rooms", summary="Вернуть информацию по номерам отеля")
 async def get_rooms(
         hotel_id: int,
         db: DBDep,
@@ -52,6 +53,20 @@ async def get_rooms(
         max_price,
         min_quantity,
         max_quantity,
+    )
+
+
+@router.get("/{hotel_id}/rooms/free", summary="Вернуть информацию по свободным отелям в определённые даты")
+async def get_rooms_freedom(
+        hotel_id: int,
+        db: DBDep,
+        date_from: date = Query(example=f"{date.today()}"),
+        date_to: date = Query(example=f"{date.today() + timedelta(days=10)}"),
+):
+    return await db.rooms.get_all_filtered_time(
+        hotel_id=hotel_id,
+        date_from=date_from,
+        date_to=date_to
     )
 
 

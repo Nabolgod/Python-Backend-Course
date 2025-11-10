@@ -8,7 +8,7 @@ from src.database import async_session_maker
 
 class PaginationParams(BaseModel):
     page: Annotated[int | None, Query(default=1, description="Кол-во страниц", ge=1)]
-    per_page: Annotated[int | None, Query(default=None, description="Кол-во элементов на странице", ge=1, lt=30)]
+    per_page: Annotated[int, Query(default=5, description="Кол-во элементов на странице", ge=1, lt=30)]
 
 
 # Зависимость для пагинации

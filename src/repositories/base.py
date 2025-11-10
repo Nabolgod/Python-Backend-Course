@@ -17,6 +17,18 @@ class BaseRepository:
         models = result.scalars().all()
         return [self.scheme.model_validate(model, from_attributes=True) for model in models]
 
+    async def get_all_filtered(self, *where, **filter_by):
+        """Метод возвращает всю информацию по сущности с учётом фильтрации"""
+
+        query = (
+            select(self.model)
+            .filter(*where)
+            .filter_by(**filter_by)
+        )
+        result = await self.session.execute(query)
+        models = result.scalars().all()
+        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+
     async def get_on_or_none(self, **filter_by):
         """
         Метод возвращает None, если нет результатов или одну строчку.

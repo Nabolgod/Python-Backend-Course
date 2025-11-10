@@ -1,11 +1,11 @@
 from src.repositories.base import BaseRepository
-from src.models.bookings import BookingORM
+from src.models.bookings import BookingsORM
 from src.schemes.bookings import Booking
 from sqlalchemy import select
 
 
-class BookingRepository(BaseRepository):
-    model = BookingORM
+class BookingsRepository(BaseRepository):
+    model = BookingsORM
     scheme = Booking
 
     async def get_all_my_bookings(self, user_id):

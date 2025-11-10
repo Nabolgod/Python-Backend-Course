@@ -5,7 +5,7 @@ from src.schemes.bookings import BookingAddRequest, BookingAddResponse
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
 
-@router.post("")
+@router.post("", summary="Создать бронирование")
 async def create_booking(
         db: DBDep,
         user_id: UserIdDep,
@@ -31,14 +31,14 @@ async def create_booking(
     return {"status": "Бронирование успешно добавлено", "data": booking}
 
 
-@router.get("/bookings")
+@router.get("/bookings", summary="Вернуть все бронирования")
 async def get_bookings(
         db: DBDep,
 ):
     return await db.bookings.get_all()
 
 
-@router.get("/bookings/me")
+@router.get("/bookings/me", summary="Вернуть все бронирования авторизованного пользователя")
 async def get_bookings_me(
         db: DBDep,
         user_id: UserIdDep,

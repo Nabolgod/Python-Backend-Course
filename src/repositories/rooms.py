@@ -2,6 +2,7 @@ from src.models.rooms import RoomsORM
 from src.repositories.base import BaseRepository
 from src.schemes.rooms import Room
 from sqlalchemy import select
+from src.utils.repositories import rooms_ids_fro_booking
 
 
 class RoomsRepository(BaseRepository):
@@ -31,3 +32,16 @@ class RoomsRepository(BaseRepository):
         result = await self.session.execute(query)
         models = result.scalars().all()
         return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+
+    async def get_all_filtered_time(
+            self,
+            hotel_id,
+            date_from,
+            date_to,
+    ):
+        rooms_freedom_ids = rooms_ids_fro_booking(
+            hotel_id=hotel_id,
+            date_from=date_from,
+            date_to=date_to,
+        )
+        return await self.get_all_filtered(self.model.id.in_(rooms_freedom_ids))

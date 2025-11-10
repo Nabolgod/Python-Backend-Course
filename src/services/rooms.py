@@ -4,8 +4,8 @@ from fastapi import HTTPException
 
 class RoomsService:
     @staticmethod
-    async def does_hotel_exist(hotel_id):
-        hotel = await get_hotel(hotel_id)
+    async def does_hotel_exist(hotel_id, db):
+        hotel = await get_hotel(hotel_id, db)
 
         if hotel is None:
             raise HTTPException(

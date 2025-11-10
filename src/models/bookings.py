@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKey, DateTime
 from datetime import date
 
 
-class BookingORM(Base):
+class BookingsORM(Base):
     __tablename__ = 'bookings'
 
     id: Mapped[int] = mapped_column(primary_key=True)
