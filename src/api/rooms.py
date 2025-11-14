@@ -105,7 +105,7 @@ async def put_room(
             detail=f"Номера с ID-{room_id} не существует"
         )
 
-    new_room_data = RoomPutRequest(**room_data.model_dump(exclude={"facilities_ids"}))
+    new_room_data = RoomPutRequest(**room_data.model_dump())
     await db.rooms.edit(data=new_room_data, hotel_id=hotel_id, id=room_id)
     await db.rooms_facilities.update_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
     await db.commit()
@@ -127,9 +127,12 @@ async def patch_room(
             detail=f"Номера с ID-{room_id} не существует"
         )
 
-    new_room_data = RoomPatchRequest(**room_data.model_dump(exclude={"facilities_ids"}))
+    new_room_data_dict = room_data.model_dump(exclude_unset=True)
+    new_room_data = RoomPatchRequest(**new_room_data_dict)
     await db.rooms.edit(data=new_room_data, exclude_unset=True, hotel_id=hotel_id, id=room_id)
-    await db.rooms_facilities.update_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
+
+    if "facilities_ids" in new_room_data_dict:
+        await db.rooms_facilities.update_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
     await db.commit()
 
     return {"starus": "ok", "detail": f"Номер с ID-{room_id} частично изменён"}

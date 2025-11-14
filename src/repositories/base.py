@@ -68,6 +68,11 @@ class BaseRepository:
         """
         Метод для редактирования данных с фильтрацией
         """
+        values_dict = data.model_dump(exclude_unset=exclude_unset)
+
+        if not values_dict:
+            return
+
         put_data_stmt = (
             update(self.model)
             .filter_by(**filter_by)

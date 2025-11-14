@@ -1,51 +1,47 @@
 from pydantic import BaseModel, Field
+from typing import Optional
 
 
-class RoomAddResponse(BaseModel):
+class RoomCoreFields(BaseModel):
+    title: str
+    description: Optional[str] = Field(default=None)
+    price: int
+    quantity: int
+
+
+class RoomOptionalFields(BaseModel):
+    title: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None)
+    price: Optional[int] = Field(default=None)
+    quantity: Optional[int] = Field(default=None)
+
+
+# Запросы
+class RoomAddRequest(RoomCoreFields):
+    facilities_ids: Optional[list[int]] = Field(default=[])
+
+
+class RoomPutRequest(RoomCoreFields):
+    pass
+
+
+class RoomPatchRequest(RoomOptionalFields):
+    pass
+
+
+# Ответы
+class RoomAddResponse(RoomCoreFields):
     hotel_id: int
-    title: str
-    description: str | None = Field(default=None)
-    price: int
-    quantity: int
 
 
-class RoomAddRequest(BaseModel):
-    title: str
-    description: str | None = Field(default=None)
-    price: int
-    quantity: int
-    facilities_ids: list[int] | None = Field(default=None)
-
-
-class Room(RoomAddResponse):
+class Room(RoomCoreFields):
     id: int
+    hotel_id: int
 
 
-class RoomPatchResponse(BaseModel):
-    title: str | None = Field(default=None)
-    description: str | None = Field(default=None)
-    price: int | None = Field(default=None)
-    quantity: int | None = Field(default=None)
-    facilities_ids: set[int] | None = Field(default=None)
-
-
-class RoomPatchRequest(BaseModel):
-    title: str | None = Field(default=None)
-    description: str | None = Field(default=None)
-    price: int | None = Field(default=None)
-    quantity: int | None = Field(default=None)
-
-
-class RoomPutResponse(BaseModel):
-    title: str
-    description: str
-    price: int
-    quantity: int
+class RoomPutResponse(RoomCoreFields):
     facilities_ids: set[int]
 
 
-class RoomPutRequest(BaseModel):
-    title: str
-    description: str
-    price: int
-    quantity: int
+class RoomPatchResponse(RoomOptionalFields):
+    facilities_ids: Optional[set[int]] = Field(default=set())

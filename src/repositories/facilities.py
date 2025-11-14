@@ -50,8 +50,6 @@ class RoomsFacilitiesRepository(BaseRepository):
             room_id,
             facilities_ids,
     ):
-        if not facilities_ids:
-            return
 
         all_facility_ids = await self.get_ids_facilities(room_id)
 
