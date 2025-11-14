@@ -1,6 +1,11 @@
 from datetime import date, timedelta
 from fastapi import APIRouter, Body, Query, HTTPException
-from src.schemes.rooms import RoomAddRequest, RoomPatch, RoomPut, RoomAddResponse
+from src.schemes.rooms import (
+    RoomAddRequest, RoomAddResponse,
+    RoomPatchResponse, RoomPatchRequest,
+    RoomPutResponse, RoomPutRequest
+)
+from src.schemes.facilities import RoomFacilityAdd
 from src.services.rooms import room_service
 from src.api.dependencies import DBDep
 
@@ -11,25 +16,20 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 async def create_room(
         hotel_id: int,
         db: DBDep,
-        room_data: RoomAddRequest = Body(
-            openapi_examples={
-                "1": {
-                    "summary": "Пример отеля",
-                    "value": {
-                        "title": "Тут название номера",
-                        "description": "Тут необязательная дополнительная информация",
-                        "price": "(INT) Тут цена номера в сутки",
-                        "quantity": "(INT) Тут кол-во номеров",
-                    },
-                }
-            }
-        ),
+        room_data: RoomAddRequest = Body(),
 ):
     room = None
     if await room_service.does_hotel_exist(hotel_id, db):
         new_room_data = RoomAddResponse(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
         room = await db.rooms.add(new_room_data)
-        await db.commit()
+
+    if room_data.facilities_ids is not None:
+        rooms_facilities_data = [
+            RoomFacilityAdd(room_id=room.id, facility_id=f_id)
+            for f_id in room_data.facilities_ids
+        ]
+        await db.rooms_facilities.add_bulk(rooms_facilities_data)
+    await db.commit()
 
     return {"status": "Номер успешно добавлен", "data": room}
 
@@ -92,11 +92,11 @@ async def delete_room(
     return {"starus": "ok", "detail": f"Номер с ID-{room_id} удалён"}
 
 
-@router.put("/{hotel_id}/room/{room_id}", summary="Изменить полную информацию об отеле")
+@router.put("/{hotel_id}/room/{room_id}", summary="Изменить полную информацию о номере")
 async def put_room(
         hotel_id: int,
         room_id: int,
-        room_data: RoomPut,
+        room_data: RoomPutResponse,
         db: DBDep,
 ):
     if await get_room(room_id, db) is None:
@@ -105,19 +105,20 @@ async def put_room(
             detail=f"Номера с ID-{room_id} не существует"
         )
 
-    await db.rooms.edit(data=room_data, hotel_id=hotel_id, id=room_id)
+    new_room_data = RoomPutRequest(**room_data.model_dump(exclude={"facilities_ids"}))
+    await db.rooms.edit(data=new_room_data, hotel_id=hotel_id, id=room_id)
+    await db.rooms_facilities.update_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
     await db.commit()
-
     return {"starus": "ok", "detail": f"Номер с ID-{room_id} полностью изменён"}
 
 
 @router.patch(
-    "/{hotel_id}/room/{room_id}", summary="Изменить частичную информацию об отеле"
+    "/{hotel_id}/room/{room_id}", summary="Изменить частичную информацию о номере"
 )
 async def patch_room(
         hotel_id: int,
         room_id: int,
-        room_data: RoomPatch,
+        room_data: RoomPatchResponse,
         db: DBDep,
 ):
     if await get_room(room_id, db) is None:
@@ -126,7 +127,9 @@ async def patch_room(
             detail=f"Номера с ID-{room_id} не существует"
         )
 
-    await db.rooms.edit(data=room_data, exclude_unset=True, hotel_id=hotel_id, id=room_id)
+    new_room_data = RoomPatchRequest(**room_data.model_dump(exclude={"facilities_ids"}))
+    await db.rooms.edit(data=new_room_data, exclude_unset=True, hotel_id=hotel_id, id=room_id)
+    await db.rooms_facilities.update_room_facilities(room_id=room_id, facilities_ids=room_data.facilities_ids)
     await db.commit()
 
     return {"starus": "ok", "detail": f"Номер с ID-{room_id} частично изменён"}

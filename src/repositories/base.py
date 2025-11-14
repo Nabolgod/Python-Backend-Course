@@ -43,7 +43,7 @@ class BaseRepository:
 
     async def add(self, data: BaseModel):
         """
-        Метод добавляет данные об сущности в базу данных
+        Метод добавляет одну запись в таблицу сущности
         """
         add_data_stmt = (
             insert(self.model)
@@ -53,6 +53,16 @@ class BaseRepository:
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
         return self.scheme.model_validate(model, from_attributes=True)
+
+    async def add_bulk(self, data: list[BaseModel]):
+        """
+        Метод добавляет несколько записей в таблицу сущности
+        """
+        add_data_stmt = (
+            insert(self.model)
+            .values([item.model_dump() for item in data])
+        )
+        await self.session.execute(add_data_stmt)
 
     async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by) -> None:
         """
