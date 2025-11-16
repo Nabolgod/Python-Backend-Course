@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+from src.schemes.facilities import Facility
+
 
 class RoomCoreFields(BaseModel):
     title: str
@@ -37,6 +39,10 @@ class RoomAddResponse(RoomCoreFields):
 class Room(RoomCoreFields):
     id: int
     hotel_id: int
+
+
+class RoomWithRels(Room):
+    facilities: list[Facility]
 
 
 class RoomPutResponse(RoomCoreFields):
