@@ -1,12 +1,13 @@
 from src.repositories.base import BaseRepository
 from src.models.facilities import FacilitiesORM, RoomsFacilitiesORM
-from src.schemes.facilities import Facility, RoomFacility, RoomFacilityAdd
+from src.repositories.mappers.mappers import FacilitiesDataMapper, RoomsFacilitiesDataMapper
+from src.schemes.facilities import RoomFacilityAdd
 from sqlalchemy import select, delete
 
 
 class FacilitiesRepository(BaseRepository):
     model = FacilitiesORM
-    scheme = Facility
+    mapper = FacilitiesDataMapper
 
     async def get_all_facilities(self, title):
         query = select(self.model)
@@ -16,12 +17,12 @@ class FacilitiesRepository(BaseRepository):
 
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]
 
 
 class RoomsFacilitiesRepository(BaseRepository):
     model = RoomsFacilitiesORM
-    scheme = RoomFacility
+    mapper = RoomsFacilitiesDataMapper
 
     async def get_ids_facilities(self, room_id):
         query = (

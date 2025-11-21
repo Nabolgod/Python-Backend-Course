@@ -1,6 +1,7 @@
 from src.models.rooms import RoomsORM
 from src.repositories.base import BaseRepository
-from src.schemes.rooms import Room, RoomWithRels
+from src.repositories.mappers.mappers import RoomsDataMapper, RoomsWithRelsDataMapper
+from src.schemes.rooms import RoomWithRels
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from src.utils.repositories import rooms_ids_fro_booking
@@ -8,7 +9,7 @@ from src.utils.repositories import rooms_ids_fro_booking
 
 class RoomsRepository(BaseRepository):
     model = RoomsORM
-    scheme = Room
+    mapper = RoomsDataMapper
 
     async def get_all(
             self,
@@ -32,7 +33,7 @@ class RoomsRepository(BaseRepository):
 
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]
 
     async def get_all_filtered_time(
             self,
@@ -53,7 +54,7 @@ class RoomsRepository(BaseRepository):
         )
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [RoomWithRels.model_validate(model, from_attributes=True) for model in models]
+        return [RoomsWithRelsDataMapper.map_to_domain_entity(model) for model in models]
 
     async def get_on_or_none(self, **filter_by):
         """

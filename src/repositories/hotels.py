@@ -1,14 +1,14 @@
 from src.models.hotels import HotelsORM
 from src.models.rooms import RoomsORM
 from src.repositories.base import BaseRepository
-from sqlalchemy import select, or_, func
-from src.schemes.hotels import Hotel
+from sqlalchemy import select, or_
+from src.repositories.mappers.mappers import HotelsDataMapper
 from src.utils.repositories import rooms_ids_fro_booking
 
 
 class HotelsRepository(BaseRepository):
     model = HotelsORM
-    scheme = Hotel
+    mapper = HotelsDataMapper
 
     async def get_all_filtered_time(
             self,
@@ -47,4 +47,4 @@ class HotelsRepository(BaseRepository):
 
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]

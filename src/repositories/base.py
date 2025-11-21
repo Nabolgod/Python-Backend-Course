@@ -1,10 +1,11 @@
 from sqlalchemy import select, insert, delete, update
 from pydantic import BaseModel
+from src.repositories.mappers.base import DataMapper
 
 
 class BaseRepository:
     model = None
-    scheme: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -15,7 +16,7 @@ class BaseRepository:
         query = select(self.model)
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]
 
     async def get_all_filtered(self, *where, **filter_by):
         """Метод возвращает всю информацию по сущности с учётом фильтрации"""
@@ -27,7 +28,7 @@ class BaseRepository:
         )
         result = await self.session.execute(query)
         models = result.scalars().all()
-        return [self.scheme.model_validate(model, from_attributes=True) for model in models]
+        return [self.mapper.map_to_domain_entity(model) for model in models]
 
     async def get_on_or_none(self, **filter_by):
         """
@@ -39,7 +40,7 @@ class BaseRepository:
         model = result.scalars().one_or_none()
         if model is None:
             return None
-        return self.scheme.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add(self, data: BaseModel):
         """
@@ -52,7 +53,7 @@ class BaseRepository:
         )
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.scheme.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
     async def add_bulk(self, data: list[BaseModel]):
         """

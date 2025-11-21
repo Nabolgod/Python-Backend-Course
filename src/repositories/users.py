@@ -2,12 +2,13 @@ from pydantic import EmailStr
 from sqlalchemy import select
 from src.models.users import UsersORM
 from src.repositories.base import BaseRepository
-from src.schemes.users import User, UserWithHashPassword
+from src.repositories.mappers.mappers import UsersDataMapper
+from src.schemes.users import UserWithHashPassword
 
 
 class UsersRepository(BaseRepository):
     model = UsersORM
-    scheme = User
+    mapper = UsersDataMapper
 
     async def get_hash_password_or_none(self, email: EmailStr):
         """
