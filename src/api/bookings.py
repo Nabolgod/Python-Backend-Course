@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from src.api.dependencies import DBDep, UserIdDep
 from src.schemes.bookings import BookingAddRequest, BookingAddResponse
+from fastapi_cache.decorator import cache
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
@@ -32,6 +33,7 @@ async def create_booking(
 
 
 @router.get("/bookings", summary="Вернуть все бронирования")
+@cache(expire=60)
 async def get_bookings(
         db: DBDep,
 ):
@@ -39,6 +41,7 @@ async def get_bookings(
 
 
 @router.get("/bookings/me", summary="Вернуть все бронирования авторизованного пользователя")
+@cache(expire=60)
 async def get_bookings_me(
         db: DBDep,
         user_id: UserIdDep,

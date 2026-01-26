@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from fastapi import APIRouter, Body, Query, HTTPException
+from fastapi_cache.decorator import cache
 from src.schemes.rooms import (
     RoomAddRequest, RoomAddResponse,
     RoomPatchResponse, RoomPatchRequest,
@@ -35,6 +36,7 @@ async def create_room(
 
 
 @router.get("/{hotel_id}/rooms", summary="Вернуть информацию по номерам отеля")
+@cache(expire=60)
 async def get_rooms(
         hotel_id: int,
         db: DBDep,
@@ -57,6 +59,7 @@ async def get_rooms(
 
 
 @router.get("/{hotel_id}/rooms/free", summary="Вернуть информацию по свободным отелям в определённые даты")
+@cache(expire=60)
 async def get_rooms_freedom(
         hotel_id: int,
         db: DBDep,
@@ -70,9 +73,8 @@ async def get_rooms_freedom(
     )
 
 
-@router.get(
-    "/room/{room_id}", summary="Вернуть информацию по конкретному номеру"
-)
+@router.get("/room/{room_id}", summary="Вернуть информацию по конкретному номеру")
+@cache(expire=60)
 async def get_room(
         room_id: int,
         db: DBDep,

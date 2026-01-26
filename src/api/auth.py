@@ -42,7 +42,7 @@ async def login_user(
     return {"access_token": access_token}
 
 
-@router.get("/me")
+@router.get("/me", description="Возрващает данные о текущем аутентифицированном пользователе")
 async def get_me(
         user_id: UserIdDep,
         db: DBDep,
@@ -51,7 +51,7 @@ async def get_me(
     return {"data": users}
 
 
-@router.post("/logout")
+@router.post("/logout", description="Выход из профиля")
 async def logout_user(
         response: Response,
 ):

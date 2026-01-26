@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Body
 from src.api.dependencies import DBDep
 from src.schemes.facilities import FacilityAdd
 from fastapi_cache.decorator import cache
+from src.tasks.tasks import test_task
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
@@ -9,12 +10,14 @@ router = APIRouter(prefix="/facilities", tags=["Удобства"])
 @router.post("", summary="Создать удобство")
 async def create_facility(
         db: DBDep,
-        facility_data: FacilityAdd,
+        facility_data: FacilityAdd = Body(),
 ):
-    await db.facilities.add(facility_data)
+    facility = await db.facilities.add(facility_data)
     await db.commit()
 
-    return {"status": "ok", "data": facility_data}
+    test_task.delay()
+
+    return {"status": "ok", "data": facility}
 
 
 @router.get("", summary="Вернуть все удобства")
@@ -23,7 +26,6 @@ async def get_facilities(
         db: DBDep,
         title: str | None = Query(default=None, description="Название удобства"),
 ):
-    print("Иду в базу данных")
     return await db.facilities.get_all_facilities(title=title)
 
 
